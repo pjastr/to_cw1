@@ -1,0 +1,704 @@
+---
+title: Testowanie oprogramowania
+subtitle: Ćwiczenia 1 – Tworzenie dokumentacji testowej
+format:
+  revealjs:
+    progress: true
+    controls: true
+    slide-number: true
+    embed-resources: true
+lang: pl
+---
+
+# Wprowadzenie
+
+## Cel ćwiczeń {.scrollable}
+
+- **przejrzysz specyfikację** i znajdziesz w niej niejasności
+- zapiszesz **warunki testowe** i skrócony **plan testów**
+- zaprojektujesz min. **15 przypadków testowych** i **macierz śledzenia**
+- **wykonasz** przypadki i napiszesz **raporty o defektach**
+- przeprowadzisz **sesję eksploracyjną**, użyjesz **listy kontrolnej**
+  i napiszesz **raport z wykonania**
+
+Dziś **bez programowania**: Excel i pliki tekstowe.
+
+## Jak korzystać z tej instrukcji {.scrollable}
+
+Instrukcja **nie wymaga wykładu** – każdy krok ma ten sam układ:
+
+| Slajd | Co zawiera |
+|---|---|
+| **Teoria** | minimum pojęć potrzebnych do kroku |
+| **Przykład** | rozwiązany fragment zadania |
+| **Zadanie** | co dokładnie zrobić i jaki ma być efekt |
+
+Szersze objaśnienia: `PRZEWODNIK_cw1.md` (te same rozdziały).
+
+## Przygotowanie {.scrollable}
+
+1. Utwórz folder `Dokumenty\TO\cw1`.
+2. Skopiuj do niego pliki z materiałów (następny slajd).
+3. Arkusze `.xlsx` otwieraj w Excelu lub LibreOffice Calc.
+4. Pliki `.md` to zwykły tekst – otwieraj w Notatniku.
+5. Pracujemy w **parach**; każdy oddaje komplet plików.
+
+## Pliki na dzisiejsze zajęcia {.smaller .scrollable}
+
+| Plik | Do czego |
+|---|---|
+| `specyfikacja_KinoTO.md` | wymagania REQ-… (podstawa testów) |
+| `Symulator_KinoTO.xlsx` | system, który testujesz (formularz w Excelu) |
+| `Szablon_dokumentacji_testowej.xlsx` | arkusze: przegląd, warunki, przypadki, macierz, sesja, defekty, lista kontrolna, raport |
+| `plan_testow_szablon.md` | plan testów |
+| `raport_defektu_szablon.md` | opis pól raportu i lista kontrolna raportu |
+| `PRZEWODNIK_cw1.md` | teoria i przykłady do każdego kroku |
+
+## Co dziś testujemy? {.scrollable}
+
+**KinoTO** – formularz zakupu biletów do kina:
+
+- pola: imię, e-mail, wiek, liczba biletów, kod, Karta Kinomaniaka
+- wynik: komunikaty o błędach albo podsumowanie z ceną
+- reguły ceny: ulga wiekowa, rabaty, opłata rezerwacyjna
+- system jest dostępny jako **symulator w Excelu**:
+  wpisujesz dane w żółte pola, wynik pojawia się sam
+- logika jest **ukryta** – testujesz tylko ze specyfikacji
+
+## Plan zajęć (1/2) {.scrollable}
+
+| Krok | Zadanie | Czas |
+|---|---|---|
+| 0 | Pojęcia podstawowe, pliki | 15 min |
+| 1 | Przegląd specyfikacji (test statyczny) | 20 min |
+| 2 | Warunki testowe | 15 min |
+| 3 | Plan testów (skrócony) | 15 min |
+| 4 | Przypadki testowe (min. 15) | 35 min |
+| – | Przerwa | 10 min |
+
+## Plan zajęć (2/2) {.scrollable}
+
+| Krok | Zadanie | Czas |
+|---|---|---|
+| 5 | Macierz śledzenia | 10 min |
+| 6 | Wykonanie przypadków w symulatorze | 20 min |
+| 7 | Sesja eksploracyjna, raporty o defektach | 20 min |
+| 8 | Lista kontrolna | 10 min |
+| 9 | Raport z wykonania | 10 min |
+
+Oddanie plików – do kolejnych zajęć (patrz „Co oddać”).
+
+# Krok 0 – pojęcia podstawowe
+
+## Teoria: czym jest testowanie? {.scrollable}
+
+**Testowanie** – zestaw czynności, których celem jest wykrycie
+defektów i ocena jakości oprogramowania.
+
+- testujemy, by **znaleźć defekty** zanim trafią do użytkownika
+- … ale też by **zdobyć zaufanie** i **dostarczyć informacji**
+  do decyzji (np. „czy wydać wersję?”)
+- testować można **bez uruchamiania** (przegląd dokumentów)
+  i **z uruchamianiem** programu
+- testowanie ≠ debugowanie: tester **pokazuje** awarię,
+  programista **szuka przyczyny** i naprawia
+
+## Teoria: pomyłka, defekt, awaria {.smaller .scrollable}
+
+| Pojęcie | Znaczenie | Przykład w KinoTO |
+|---|---|---|
+| **Pomyłka** | błąd człowieka | programista zapisał „> 18” zamiast „≥ 18” |
+| **Defekt** | wada w programie lub dokumencie | zły warunek ulgi w programie |
+| **Awaria** | widoczne złe działanie | 18-latek dostaje bilet ulgowy |
+
+Pomyłka → defekt → (po uruchomieniu) awaria. Tester **obserwuje
+awarię** i opisuje ją tak, by programista znalazł defekt.
+
+## Teoria: proces testowy {.scrollable}
+
+1. **Planowanie** – cele, zakres, podejście → *plan testów*
+2. **Monitorowanie i nadzór** – czy idziemy zgodnie z planem
+3. **Analiza** – *co* testować → *warunki testowe*
+4. **Projektowanie** – *jak* testować → *przypadki testowe*
+5. **Implementacja** – przygotowanie danych, środowiska, procedur
+6. **Wykonanie** – uruchomienie testów → *wyniki, raporty defektów*
+7. **Ukończenie** – podsumowanie → *raport z wykonania*
+
+## Teoria: mapa dzisiejszych dokumentów {.scrollable}
+
+```text
+specyfikacja (podstawa testów: REQ-…)
+   │  Krok 1: przegląd → lista niejasności
+   ▼
+warunki testowe (CO testujemy)           Krok 2
+   ▼
+przypadki testowe (JAK testujemy)        Krok 4
+   │        ▲
+   │        └── macierz śledzenia: REQ ↔ TC   Krok 5
+   ▼
+wykonanie → raporty o defektach          Kroki 6–8
+   ▼
+raport z wykonania                       Krok 9
+
+plan testów (Krok 3) – opisuje całość: zakres, ryzyka, kryteria
+```
+
+## Teoria: słowniczek (1/3) {.scrollable}
+
+- **Podstawa testów** – źródło wiedzy o oczekiwanym działaniu,
+  np. specyfikacja
+- **Przedmiot testów** – to, co testujemy, np. KinoTO 1.0
+- **Warunek testowy** – aspekt do sprawdzenia,
+  np. „liczba biletów 1–10”
+- **Przypadek testowy** – warunki wstępne + dane + kroki
+  + oczekiwany wynik
+
+## Teoria: słowniczek (2/3) {.scrollable}
+
+- **Wyrocznia testowa** – źródło oczekiwanego wyniku
+  (wymaganie, wzór, przykład)
+- **Pokrycie** – odsetek elementów (np. wymagań)
+  sprawdzonych testami
+- **Testalia** – wszystkie produkty testowania
+  (plany, przypadki, raporty)
+
+## Teoria: słowniczek (3/3) {.scrollable}
+
+- **Test statyczny** – bez uruchamiania programu (np. przegląd)
+- **Test dynamiczny** – z uruchomieniem programu
+- **Czarna skrzynka** – test projektowany ze specyfikacji,
+  bez znajomości kodu
+- **Biała skrzynka** – test projektowany na podstawie kodu
+
+Dziś wszystkie testy są **czarnoskrzynkowe** i **manualne**.
+
+
+# Krok 1 – przegląd specyfikacji
+
+## Teoria: testowanie statyczne {.scrollable}
+
+- **przegląd** = czytanie dokumentu w poszukiwaniu defektów,
+  bez uruchamiania programu
+- defekt w wymaganiu naprawiony **przed** kodowaniem kosztuje
+  najmniej – to zasada **wczesnego testowania**
+- defekty w dokumentach to m.in.: niejednoznaczność, brak,
+  sprzeczność, wymaganie nietestowalne
+- wynik przeglądu: lista problemów z **ID wymagania**
+  i pytaniem do autora
+
+## Teoria: dobre wymaganie {.scrollable}
+
+| Cecha | Pytanie kontrolne |
+|---|---|
+| Jednoznaczne | Czy każdy zrozumie je tak samo? |
+| Kompletne | Czy opisano też dane błędne i komunikaty? |
+| Spójne | Czy nie przeczy innemu wymaganiu? |
+| Testowalne | Czy da się sprawdzić wynik: tak / nie? |
+| Atomowe | Czy opisuje jedną rzecz? |
+
+Przykład złego: „System szybko odpowiada” – ile to „szybko”?
+
+## Przykład: analiza REQ-FRM-05 {.smaller .scrollable}
+
+> Liczba biletów musi być liczbą całkowitą z zakresu 1–10 (włącznie).
+
+- granice podane, „włącznie” – **dobrze**
+- „liczba całkowita” – a co z `2,0`, `+2`, `02`, pustym polem?
+  → **niejasność**
+
+| Nr | Wymaganie | Rodzaj | Pytanie |
+|---|---|---|---|
+| 1 | REQ-FRM-05 | Niejednoznaczność | Czy `2,0` lub puste pole są błędem? |
+
+## Zadanie 1: przegląd specyfikacji {.scrollable}
+
+1. Otwórz `specyfikacja_KinoTO.md` i przeczytaj części A i B.
+2. W szablonie otwórz arkusz **Przegląd specyfikacji**.
+3. Każde wymaganie sprawdź listą z następnego slajdu.
+4. Każdą wątpliwość zapisz w osobnym wierszu: wymaganie,
+   rodzaj problemu (z listy), opis, pytanie do autora.
+5. Porównuj też wymagania **między sobą** (A ↔ B).
+
+**Efekt:** co najmniej 5 niejasności z identyfikatorem wymagania.
+
+## Zadanie 1: lista kontrolna przeglądu {.scrollable}
+
+- Czy użyto nieprecyzyjnych słów („poprawny”, „odpowiedni”, „szybko”)?
+- Czy podano **granice** (min, max, włącznie czy nie)?
+- Czy opisano zachowanie dla danych **błędnych** i komunikat?
+- Czy wymagania nie są ze sobą **sprzeczne** lub niespójne?
+- Czy czegoś **brakuje** (np. wielkość liter, spacje, zaokrąglanie)?
+- Czy da się napisać test z jednoznacznym wynikiem?
+
+
+
+# Krok 2 – warunki testowe
+
+## Teoria: warunek a przypadek testowy {.scrollable}
+
+| | Warunek testowy | Przypadek testowy |
+|---|---|---|
+| Odpowiada na | **co** sprawdzamy | **jak** sprawdzamy |
+| Szczegóły | ogólny, bez danych | konkretne dane i kroki |
+| Przykład | liczba biletów 1–10 | 11 biletów → komunikat … |
+
+Wymaganie → kilka warunków → każdy warunek → 1–3 przypadki.
+
+## Teoria: priorytet warunku {.scrollable}
+
+Priorytet wynika z **ryzyka**: co się stanie, jeśli tu jest defekt?
+
+| Priorytet | Kiedy | Przykład |
+|---|---|---|
+| Wysoki | błąd = złe pieniądze, brak zakupu | kwota do zapłaty |
+| Średni | błąd utrudnia, jest obejście | komunikat o e-mailu |
+| Niski | kosmetyka | wygląd etykiety |
+
+Testy o wysokim priorytecie projektujemy i wykonujemy **najpierw**.
+
+## Przykład: warunki dla REQ-FRM-02 {.smaller .scrollable}
+
+REQ-FRM-02: imię od 2 do 30 znaków, tylko litery, spacja i myślnik.
+
+| ID | Warunek testowy | Wymaganie | Priorytet |
+|---|---|---|---|
+| WT-FRM-01 | minimalna długość imienia (2) | REQ-FRM-02 | Średni |
+| WT-FRM-02 | maksymalna długość imienia (30) | REQ-FRM-02 | Średni |
+| WT-FRM-03 | dozwolone znaki: litery, spacja, myślnik | REQ-FRM-02 | Średni |
+| WT-FRM-04 | niedozwolone znaki: cyfry, `@`, `_` | REQ-FRM-02 | Niski |
+| WT-FRM-05 | komunikat „Podaj poprawne imię.” | REQ-FRM-02 | Niski |
+
+## Zadanie 2: warunki testowe {.scrollable}
+
+1. Arkusz **Warunki testowe**: jeden wiersz = jeden warunek.
+2. Część A (FRM): warunki dla REQ-FRM-01…08.
+3. Część B (CEN): warunki dla REQ-CEN-01…07.
+4. Każdemu nadaj priorytet z listy: Wysoki / Średni / Niski.
+5. Sprawdź, czy każde wymaganie ma choć jeden warunek.
+
+**Efekt:** ok. 10 warunków FRM i 8 CEN.
+
+
+
+# Krok 3 – plan testów
+
+## Teoria: plan testów {.scrollable}
+
+Plan testów opisuje **co**, **jak**, **kiedy** i **kto** testuje.
+Norma ISO/IEC/IEEE 29119-3 podaje typowe części planu:
+
+| Część | Pytanie |
+|---|---|
+| Kontekst i zakres | co testujemy, a czego nie? |
+| Rejestr ryzyk | co może pójść źle? |
+| Strategia | jakie techniki, poziomy, kryteria? |
+| Harmonogram, role | kiedy i kto? |
+
+Na ćwiczeniach plan jest **skrócony**: 1–2 zdania na punkt.
+
+## Teoria: ryzyko produktowe i projektowe {.scrollable}
+
+| Rodzaj | Dotyczy | Przykład |
+|---|---|---|
+| **Produktowe** | jakości produktu | zła kwota do zapłaty |
+| **Projektowe** | przebiegu testów | za mało czasu na wykonanie |
+
+**Poziom ryzyka = prawdopodobieństwo × wpływ** (skala 1–3):
+
+| Ryzyko | P | W | Poziom |
+|---|---|---|---|
+| Zły rabat w KinoTO | 2 | 3 | 6 – testować najpierw |
+
+## Teoria: kryteria wejścia i wyjścia {.scrollable}
+
+- **kryterium wejścia** – kiedy *możemy zacząć* wykonywać testy,
+  np. „symulator otwiera się i reaguje na dane”
+- **kryterium wyjścia** – kiedy *możemy skończyć*, np. „każde
+  wymaganie pokryte ≥ 1 przypadkiem, wszystkie przypadki
+  o priorytecie Wysoki wykonane”
+- **zawieszenie** – kiedy przerywamy (np. plik symulatora
+  uszkodzony, wynik się nie pojawia)
+
+## Teoria: poziomy i typy testów {.scrollable}
+
+Do punktu „Strategia” planu potrzebne są te nazwy:
+
+- **poziom**: modułowy, integracyjny, **systemowy**, akceptacyjny
+  – dziś: systemowy (cały formularz z wynikiem)
+- **typ**: **funkcjonalny** (co robi system),
+  niefunkcjonalny (wydajność, użyteczność, bezpieczeństwo)
+- **podejście**: **czarnoskrzynkowe** (ze specyfikacji),
+  białoskrzynkowe (z kodu), oparte na doświadczeniu
+- **sposób**: **manualny**
+
+## Zadanie 3: plan testów {.scrollable}
+
+1. Skopiuj `plan_testow_szablon.md` jako `plan_testow.md`.
+2. Pkt 1: przedmiot, zakres (FRM, CEN) i co poza zakresem.
+3. Rejestr ryzyk: min. 3 ryzyka (produktowe i projektowe),
+   ocena P i W w skali 1–3.
+4. Strategia: poziom, typ, techniki, kryteria wejścia i wyjścia.
+5. Harmonogram: tabela z dzisiejszymi krokami.
+6. Pozostałe punkty: 1–2 zdania lub „nie dotyczy”.
+
+**Efekt:** plan, który inna osoba zrozumie bez Twoich wyjaśnień.
+
+## Zadanie 3: jak pisać w pliku .md? {.scrollable}
+
+Plik `.md` to zwykły tekst – nie potrzebujesz programowania:
+
+- zastąp teksty w nawiasach `<…>` swoją treścią
+- wiersz tabeli to tekst z kreskami `|` – dopisz kolejne
+  wiersze, kopiując istniejący i zmieniając treść
+- usuń linie zaczynające się od `>` (to komentarze szablonu)
+- zapisz plik w kodowaniu **UTF-8** (Notatnik: *Zapisz jako*)
+
+
+
+
+# Krok 4 – przypadki testowe
+
+## Teoria: budowa przypadku (1/2) {.scrollable}
+
+| Pole | Co wpisać |
+|---|---|
+| **ID** | unikalny, np. `TC-FRM-001` |
+| **Tytuł** | co sprawdza, np. „11 biletów – odrzucone” |
+| **Wymaganie** | ID z podstawy testów, np. `REQ-FRM-05` |
+| **Warunki wstępne** | stan przed testem (np. puste pola) |
+| **Dane testowe** | **konkretne** wartości wszystkich pól |
+
+## Teoria: budowa przypadku (2/2) {.scrollable}
+
+| Pole | Co wpisać |
+|---|---|
+| **Kroki** | ponumerowane czynności testera |
+| **Oczekiwany rezultat** | z wymagania – dokładny komunikat |
+| **Rzeczywisty rezultat** | wypełniane przy wykonaniu |
+| **Status** | Nie wykonano / Zaliczony / Niezaliczony / … |
+
+Zasada: **inna osoba** wykona przypadek bez pytań do autora.
+
+## Teoria: skąd brać dane? (1/3) {.smaller .scrollable}
+
+**Klasy równoważności (EP)** – grupy wartości, które system traktuje
+**tak samo**; z każdej grupy wystarczy jedna wartość.
+
+| Klasa wieku (REQ-FRM-04, CEN-02) | Wartość | Oczekiwanie |
+|---|---|---|
+| 1–17 (poprawna, ulga) | 10 | bilet 15,00 zł |
+| 18–64 (poprawna, bez ulgi) | 30 | bilet 30,00 zł |
+| 65–120 (poprawna, ulga) | 70 | bilet 15,00 zł |
+| < 1 lub > 120 (niepoprawne) | 0, 150 | „Podaj wiek od 1 do 120.” |
+| nie liczba (niepoprawna) | `abc` | „Podaj wiek od 1 do 120.” |
+
+W jednym przypadku tylko **jedna** wartość niepoprawna.
+
+## Teoria: skąd brać dane? (2/3) {.scrollable}
+
+**Wartości brzegowe (AWB)** – defekty lubią granice
+(pomyłki typu `>` zamiast `≥`).
+
+```text
+wiek:   0 │ 1 ... 17 │ 18 ... 64 │ 65 ... 120 │ 121
+     błąd │   ulga   │  normalny │    ulga    │ błąd
+          ▲          ▲           ▲            ▲
+```
+
+- testuj **granicę** i wartość **tuż za nią**:
+  0, 1, 17, 18, 64, 65, 120, 121
+- dokładniej: granica i **obaj sąsiedzi** (np. 64, 65, 66)
+- to samo dla długości tekstu: imię 1, 2, 30, 31 znaków
+
+## Teoria: skąd brać dane? (3/3) {.scrollable}
+
+**Kombinacje warunków** – gdy wynik zależy od kilku warunków
+naraz, wypisz wszystkie kombinacje (REQ-CEN-03):
+
+| Karta Kinomaniaka | Kod `KINO10` | Rabat |
+|---|---|---|
+| tak | tak | 15% |
+| tak | nie | 10% |
+| nie | tak | 10% |
+| nie | nie | 0% |
+
+Każdy wiersz tabeli = co najmniej jeden przypadek testowy.
+
+## Przykład: przypadek dla formularza {.smaller .scrollable}
+
+| Pole | Wartość |
+|---|---|
+| ID, wymaganie | TC-FRM-007, REQ-FRM-05 |
+| Tytuł | 11 biletów – odrzucone (AWB: tuż nad granicą 10) |
+| Warunki wstępne | symulator otwarty, wszystkie żółte pola puste |
+| Dane | imię Anna, e-mail anna@example.com, wiek 30, biletów **11**, bez kodu, karta: Nie |
+| Kroki | 1. Wpisz dane. 2. Odczytaj „Komunikaty” i „Podsumowanie”. |
+| Oczekiwany | komunikat „Można kupić od 1 do 10 biletów.”, brak podsumowania |
+
+## Przykład: przypadek dla ceny {.smaller .scrollable}
+
+| Pole | Wartość |
+|---|---|
+| ID, wymaganie | TC-CEN-001, REQ-CEN-03, 05, 06 |
+| Tytuł | Karta + poprawny kod – rabat 15% |
+| Dane | imię Anna, e-mail anna@example.com, wiek 30, biletów 2, kod `KINO10`, karta: Tak |
+| Kroki | 1. Wpisz dane. 2. Odczytaj „Podsumowanie”. |
+| Oczekiwany | rabat 15%, opłata 0,00 zł, do zapłaty 51,00 zł |
+
+Wyliczenie: 2 × 30,00 × 0,85 = 51,00; karta ⇒ bez opłaty.
+
+## Zadanie 4: arkusz (1/2) {.scrollable}
+
+1. Zapisz szablon jako `Nazwisko_cw1.xlsx`.
+2. Przeczytaj arkusz **Instrukcja** (pola, statusy, ważność).
+3. Arkusz **Przypadki testowe**: żółty wiersz to przykład.
+4. Technika, Priorytet, Status – wybieraj z listy rozwijanej
+   (EP, AWB, Tablica decyzyjna, Na podstawie wymagania…).
+5. Nagłówek jest zablokowany – nie znika przy przewijaniu.
+
+## Zadanie 4: arkusz (2/2) {.scrollable}
+
+1. Dla każdego warunku napisz 1–3 przypadki: `TC-FRM-001`…
+2. **Wymaganie**: ID ze specyfikacji (kilka – po przecinku).
+3. **Dane testowe**: konkretne wartości, nie „błędne imię”.
+4. **Oczekiwany rezultat**: ze specyfikacji, z komunikatem i kwotą.
+5. Status *Nie wykonano*; na końcu usuń żółty przykład.
+
+**Efekt:** min. 15 przypadków: min. 6 FRM i 8 CEN, w tym
+4 kombinacje rabatu, min. 3 z AWB i 2 z EP.
+
+## Zadanie 4: typowe błędy {.scrollable}
+
+- „Sprawdź, czy zakup działa” – brak danych i wyniku
+- oczekiwany rezultat „błąd” – jaki komunikat?
+- dwa błędne pola w jednym przypadku
+- dane „jakieś poprawne” – każdy wpisze co innego
+- brak ID wymagania – przypadek „znika” z macierzy
+- oczekiwana kwota „jakaś” – policz ją ze wzoru REQ-CEN-06
+
+
+
+
+# Krok 5 – macierz śledzenia
+
+## Teoria: śledzenie (traceability) {.scrollable}
+
+**Macierz śledzenia** łączy wymagania z przypadkami testowymi.
+
+| Wymaganie | Przypadki | Pokrycie |
+|---|---|---|
+| REQ-FRM-05 | TC-FRM-006, 007 | Pokryte |
+| REQ-FRM-06 | – | **BRAK** |
+
+- widać **luki** – wymagania bez żadnego testu
+- zmiana wymagania → od razu wiadomo, które testy poprawić
+- **pokrycie wymagań** = pokryte / wszystkie × 100%
+
+## Zadanie 5: macierz śledzenia {.scrollable}
+
+1. Arkusz **Macierz śledzenia**: kolumny A i B (ID i skrót
+   wymagania) są już wypełnione.
+2. Kolumna C – priorytet wymagania (z listy).
+3. Kolumna D – ID przypadków dla wymagania.
+4. Kolumny E–H wypełniają się **same** – nie wpisuj w nie nic.
+5. „BRAK” → dopisz przypadek albo uzasadnij w „Uwagach”.
+
+**Efekt:** pokrycie wszystkich 15 wymagań bliskie 100%.
+
+# Krok 6 – wykonanie przypadków
+
+## Teoria: wykonanie testu {.scrollable}
+
+- wykonuj kroki **dokładnie** tak, jak je zapisano
+- porównaj **rzeczywisty** rezultat z **oczekiwanym**
+- zgodne → **Zaliczony**; różnica → **Niezaliczony**
+  i raport o defekcie
+- nie da się wykonać → **Zablokowany** (podaj powód)
+- przy niezaliczonym: powtórz test, zanim zgłosisz defekt
+- zapisz, **kto** i **kiedy** wykonał test
+
+## Zadanie 6: symulator KinoTO {.scrollable}
+
+1. Otwórz `Symulator_KinoTO.xlsx` (obok arkusza z przypadkami).
+2. Dane wpisujesz **tylko w żółte pola**; Kartę wybierasz z listy.
+3. Wynik pojawia się sam – to odpowiednik kliknięcia „Kup”.
+4. Komunikaty o błędach: sekcja **Komunikaty**.
+5. Cena i kwoty: sekcja **Podsumowanie**.
+6. Przed każdym przypadkiem **wyczyść** żółte pola (Delete).
+
+Arkusz jest chroniony – nie zobaczysz logiki (czarna skrzynka).
+
+## Zadanie 6: wykonaj przypadki {.scrollable}
+
+1. Wykonuj przypadki po kolei, od priorytetu Wysoki.
+2. Wpisz **Rzeczywisty rezultat**: dokładny komunikat i kwoty.
+3. Ustaw **Status**; uzupełnij „Wykonał” i „Data wykonania”.
+4. Niezaliczony → powtórz; jeśli dalej źle – raport o defekcie
+   i jego ID w kolumnie „ID defektu”.
+5. Wątpliwa kwota? Przelicz ją ze wzoru REQ-CEN-06.
+
+**Efekt:** wszystkie przypadki wykonane, niezaliczone mają raport.
+
+# Krok 7 – sesja eksploracyjna
+
+## Teoria: testowanie eksploracyjne {.scrollable}
+
+- **jednocześnie** poznajesz system, projektujesz
+  i wykonujesz testy – bez gotowych przypadków
+- prowadzone w **sesjach** o stałym czasie (np. 20 min)
+- cel sesji opisuje **karta testu** (*charter*):
+  „Zbadaj … używając … aby …”
+- w trakcie prowadzisz **notatki**: co sprawdzono, co zauważono
+- znajduje defekty, których nie przewidziały przypadki
+- to technika **oparta na doświadczeniu** testera
+
+## Teoria: czy to na pewno defekt? {.smaller .scrollable}
+
+Oczekiwany wynik bierzemy z **wyroczni**:
+
+| Wyrocznia | Przykład |
+|---|---|
+| specyfikacja | komunikat ma brzmieć dokładnie tak jak w REQ |
+| wzór lub przykład | 2 × 30,00 × 0,85 = 51,00 zł |
+| konwencje | kwota z jednostką „zł” |
+| zdrowy rozsądek | brak literówek, spójne nazwy |
+
+Wątpliwość bez wyroczni → zapisz jako **pytanie**, nie defekt.
+
+## Zadanie 7: sesja na symulatorze {.scrollable}
+
+1. Arkusz **Sesja eksploracyjna** – karta jest już wpisana;
+   uzupełnij „Tester” i „Data”.
+2. Przez 20 minut próbuj **nietypowych** danych: puste pola,
+   spacje, liczby ujemne i ułamkowe, długie teksty, polskie
+   znaki, małe i wielkie litery w kodzie.
+3. Każdą próbę zapisz w tabeli notatek: dane, obserwacja, ocena.
+4. Kandydat na defekt → sprawdź go jeszcze raz.
+
+**Efekt:** min. 10 notatek z sesji.
+
+## Teoria: raport o defekcie {.smaller .scrollable}
+
+Cel: inna osoba, **tylko z raportu**, odtwarza awarię.
+Przykład (fikcyjny):
+
+| Słaby raport | Dobry raport |
+|---|---|
+| „Cena nie działa” | „Podsumowanie: wiek 10 – cena biletu 30,00 zł zamiast 15,00 zł” |
+| brak danych | imię Ola, e-mail ola@example.com, wiek 10, 1 bilet, karta: Nie |
+| „powinno być taniej” | oczekiwane: 15,00 zł (REQ-CEN-02, ulga < 18 lat) |
+| „czasem” | powtarzalność: zawsze (3 na 3 próby) |
+
+Jeden raport = **jeden** problem; rzeczowo, bez ocen ludzi.
+
+## Teoria: ważność czy priorytet? {.smaller .scrollable}
+
+- **ważność** (*severity*) – jak bardzo defekt szkodzi systemowi
+- **priorytet** (*priority*) – jak pilnie trzeba go naprawić
+
+| Ważność | Przykład wpływu |
+|---|---|
+| Krytyczna | nie da się nic kupić, utrata danych |
+| Wysoka | zła kwota do zapłaty, brak obejścia |
+| Średnia | błąd z obejściem, brak komunikatu |
+| Niska | literówka, kosmetyka |
+
+Literówka w nazwie kina na ekranie głównym: ważność niska,
+priorytet **wysoki**.
+
+## Teoria: cykl życia defektu {.scrollable}
+
+```text
+Nowy → Otwarty → W naprawie → Naprawiony → Do retestu → Zamknięty
+  │                                            │
+  └→ Odrzucony (to nie defekt,                 └→ Ponownie otwarty
+     nie do odtworzenia)                          (retest nieudany)
+  └→ Odroczony (naprawa później)
+```
+
+- tester zakłada raport (**Nowy**) i wykonuje **retest**
+  po naprawie
+- dziś wszystkie Twoje raporty mają status **Nowy**
+
+## Zadanie 7: raporty o defektach {.scrollable}
+
+1. Arkusz **Raporty defektów**: jeden wiersz = jeden problem.
+2. Tytuł: *gdzie* + *co* (np. „Podsumowanie: …”, „Formularz: …”).
+3. Środowisko: system, program (Excel / Calc) i wersja.
+4. Dane testowe i kroki; oczekiwany (z ID wymagania)
+   i rzeczywisty rezultat.
+5. Ważność, priorytet, powtarzalność, status *Nowy* – z list.
+6. Sprawdź raport listą z `raport_defektu_szablon.md`.
+
+**Efekt:** min. 3 raporty (z kroku 6 i z sesji).
+
+
+
+# Krok 8 – lista kontrolna
+
+## Teoria: lista kontrolna {.scrollable}
+
+- **testowanie w oparciu o listę kontrolną** – sprawdzasz
+  przygotowaną listę pytań zamiast pisać pełne przypadki
+- pozycja = pytanie, na które **„Tak” = poprawnie**
+- źródła pozycji: doświadczenie, typowe błędy, standardy, wymagania
+- listy **ogólne** (każdy formularz) i **specyficzne** (ten ekran)
+- zaleta: szybka i elastyczna; wada: wynik zależy od testera
+- listę trzeba **aktualizować** – stare pozycje „zużywają się”
+
+## Zadanie 8: przygotuj i wykonaj listę {.scrollable}
+
+1. Arkusz **Lista kontrolna**: min. **10 pozycji** dla ekranu
+   symulatora w obszarach: zgodność ze specyfikacją,
+   komunikaty, prezentacja wyników, użyteczność.
+2. Pozycja = pytanie, „Tak” = poprawnie; numeruj `CHK-01`…
+3. Sprawdź pozycje na symulatorze; wynik wybierz z listy.
+4. Przy „Nie” wpisz dowód; defekt → raport i jego ID.
+5. Brak wymagania? Zapisz jako pytanie/sugestię, nie defekt.
+
+**Efekt:** wykonana lista, min. 1 dodatkowy raport lub pytanie.
+
+## Zadanie 8: przykładowe pozycje {.scrollable}
+
+| Obszar | Pozycja kontrolna |
+|---|---|
+| Zgodność | Czy nazwy pól są zgodne ze specyfikacją (REQ-FRM-01)? |
+| Komunikaty | Czy każdy błąd ma osobny komunikat? |
+| Komunikaty | Czy treść komunikatów jest identyczna jak w REQ? |
+| Wyniki | Czy wszystkie kwoty mają format „0,00 zł”? |
+| Wyniki | Czy przy błędach podsumowanie jest ukryte? |
+| Użyteczność | Czy widać, które pola trzeba wypełnić? |
+
+# Krok 9 – raport z wykonania
+
+## Teoria: raport z wykonania testów {.scrollable}
+
+Podsumowuje testy dla osób, które **podejmują decyzje**:
+
+- co przetestowano i co **nie** (odstępstwa od planu, powody)
+- liczby: przypadki wykonane / zaliczone, defekty wg ważności
+- pokrycie wymagań z macierzy śledzenia
+- ocena **kryteriów wyjścia** z planu testów
+- **rekomendacja**, np. „nie wydawać do czasu naprawy DEF-002”
+- wnioski na przyszłość (*lessons learned*)
+
+## Przykład: fragment raportu (fikcyjny) {.scrollable}
+
+| Pozycja | Wartość |
+|---|---|
+| Przypadki | 18 zaprojektowanych, 18 wykonanych |
+| Wynik | 15 zaliczonych, 3 niezaliczone |
+| Pokrycie wymagań | 100% (15 z 15) |
+| Defekty | 4: 2 wysokie, 2 niskie |
+| Rekomendacja | nie wydawać – błędne kwoty do zapłaty |
+
+## Zadanie 9: raport z wykonania {.scrollable}
+
+1. Arkusz **Raport z wykonania**: liczby w kolumnie B liczą się same.
+2. Uzupełnij identyfikator, obiekt testów, okres, autora.
+3. Wpisz zakres prac i odstępstwa od planu
+   (co nie zostało wykonane i dlaczego).
+4. Najważniejsze problemy i ryzyka, ocena kryteriów wyjścia.
+5. Rekomendacja i wnioski na przyszłość (1–2 zdania).
+
+**Efekt:** kompletny raport; wszystkie liczby zgodne z arkuszami.
